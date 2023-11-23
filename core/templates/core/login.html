@@ -1,0 +1,48 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Log In |{% endblock %}
+
+{% block content %}
+    <div class="mt-5 text-center">
+        <h1 class="text-3xl" lg:text-6xl>Log In</h1>
+    </div>
+
+    <div class="container">
+        <div class="pb-3 row justify-content-center">
+
+            <div class="col-12 col-md-6 col-lg-6 col-sm-10 col-xl-6">
+                
+                <form method = "POST" action = "." class = "lg:w-1/4 px-4 mx-auto">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="username" class="form-control" name="username" placeholder="Enter Username">
+                </div>
+
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control" name="password" placeholder="Enter Password">
+                </div>
+
+                {% if form.errors %}
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <div class="alert alert-danger">
+                                <strong>{{ error|escape }}</strong>
+                            </div>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            <strong>{{ error|escape }}</strong>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <button type="submit" class="btn btn-dark">Log In</button>
+
+                </form>
+
+            </div>
+{% endblock %}
