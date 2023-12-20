@@ -1,0 +1,74 @@
+{% extends 'core/base.html' %}
+
+{% block title %} {{ room.name }} |{% endblock %}
+
+{% block content %}
+<div class="mt-5 text-center">
+    <h1 class="text-3xl" lg:text-6xl>{{ room.name }}</h1>
+</div>
+
+<section style="background-color: #747070;">
+
+<div class="container">
+    <div class="row d-flex justify-content-center">
+        <div class="col-3">
+            <form>
+                <div class="form-group">
+                    <label for="exampleFormControlTextarea1" class="h4 pt-5">Chatbox</label>
+                    <textarea class="form-control" id="chat-text" readonly rows="20"></textarea><br>
+                </div>
+                <div class="form-group">
+                    <input class="form-control" placeholder="Enter text here" id="input" type="text"></br>
+                </div>
+                <input class="btn btn-primary btn-lg btn-block" id="submit" type="button" value="Send">
+            </form>
+        </div>
+    </div>
+</div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+
+{{ room.slug|json_script:"json-roomname" }}
+{{ request.user.username|json_script:"json-username" }}
+
+<script>
+// Get the username from the JSON script in the template
+const user_username = JSON.parse(document.getElementById('json-username').textContent);
+
+// Get the room name from the JSON script in the template
+const boxName = JSON.parse(document.getElementById('json-roomname').textContent);
+
+// Create a WebSocket in JavaScript.
+const chatSocket = new WebSocket(
+    'ws://' +
+    window.location.host +
+    '/ws/room/' +
+    boxName +
+    '/'
+);
+
+// Set up event handler for the WebSocket onmessage event
+chatSocket.onmessage = function (e) {
+    const data = JSON.parse(e.data);
+    document.querySelector('#chat-text').value += (data.message + ' sent by ' + data.username + '\n'); // add message to text box
+};
+
+// Set up event handler for the submit button
+document.querySelector('#submit').onclick = function (e) {
+    const messageInputDom = document.querySelector('#input');
+    const message = messageInputDom.value;
+
+    // Send the message and username through the WebSocket
+    chatSocket.send(JSON.stringify({
+        'message': message,
+        'username': user_username,
+    }));
+
+    // Clear the message input
+    messageInputDom.value = '';
+};
+</script>
+
+{% endblock %}

@@ -79,6 +79,13 @@ TEMPLATES = [
 WSGI_APPLICATION = 'pandachat.wsgi.application'
 ASGI_APPLICATION = 'pandachat.asgi.application'
 
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        'expiry': 400
+    },
+}
+
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
