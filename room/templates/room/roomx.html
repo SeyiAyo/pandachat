@@ -7,12 +7,12 @@
     <h1 class="text-3xl" lg:text-6xl>{{ room.name }}</h1>
 </div>
 
-<section style="background-color: #747070;">
+<section style="background-color: #747070; text-decoration: black;">
     <div class="container py-5">
 
         <div class="row">
 
-            <div class="col-md-6 col-lg-5 col-xl-4 mb-4 mb-md-0">
+            <div class="col-md-6 col-lg-5 col-xl-4 mb-4 mb-md-0" style="text-decoration: black;">
 
                 <h5 class="font-weight-bold mb-3 text-center text-lg-start">Members</h5>
 
@@ -184,7 +184,7 @@
                             alt="avatar"
                             class="rounded-circle d-flex align-self-start me-3 shadow-1-strong"
                             width="60">
-                        <div class="card">
+                        <div class="card" id="chat-text">
                             <div
                                 class="card-header d-flex justify-content-between p-3">
                                 <p class="fw-bold mb-0">Brad Pitt</p>
@@ -202,7 +202,7 @@
                         </div>
                     </li>
                     <li class="d-flex justify-content-between mb-4">
-                        <div class="card w-100">
+                        <div class="card w-100" id="chat-text">
                             <div
                                 class="card-header d-flex justify-content-between p-3">
                                 <p class="fw-bold mb-0">Lara Croft</p>
@@ -229,7 +229,7 @@
                             alt="avatar"
                             class="rounded-circle d-flex align-self-start me-3 shadow-1-strong"
                             width="60">
-                        <div class="card">
+                        <div class="card" id="chat-text">
                             <div
                                 class="card-header d-flex justify-content-between p-3">
                                 <p class="fw-bold mb-0">Brad Pitt</p>
@@ -246,15 +246,11 @@
                             </div>
                         </div>
                     </li>
-                    <li class="bg-white mb-3">
-                        <div class="form-outline">
-                            <textarea class="form-control" id="textAreaExample2"
-                                rows="4" placeholder="Enter your message..."></textarea>
-                            <label class="form-label" for="textAreaExample2">Message</label>
+                    <li class="mb-3">
+                        <div class="form-group">
+                            <input class="form-control" placeholder="Enter text here" id="input" type="text"></br>
                         </div>
-                    </li>
-                    <button type="button"
-                        class="btn btn-info btn-rounded float-end">Send</button>
+                        <input class="btn btn-primary btn-lg btn-block" id="submit" type="button" value="Send">
                 </ul>
 
             </div>
@@ -266,28 +262,64 @@
 {% endblock %}
 
 {% block scripts %}
+
+
 {{ room.slug|json_script:"json-roomname" }}
+{{ request.user.username|json_script:"json-username" }}
 
 <script>
-    const roomName = JSON.parse(document.getElementById('json-roomname').textContent);
-    const chatSocket = new WebSocket(
-        'ws://'
-        + window.location.host
-        + '/ws/room/'
-        + encodeURIComponent(roomName)
-        + '/'
-    );
+// Get the username from the JSON script in the template
+const user_username = JSON.parse(document.getElementById('json-username').textContent);
 
-    chatSocket.onerror = (error) => {
-    console.error('WebSocket error:', error);
-    };
+// Get the room name from the JSON script in the template
+const room_name = JSON.parse(document.getElementById('json-roomname').textContent);
 
-    chatSocket.onmessage = function(e) {
-        console.log('onmessage')
+// Create a WebSocket in JavaScript.
+const chatSocket = new WebSocket(
+    'ws://' +
+    window.location.host +
+    '/ws/room/' +
+    room_name +
+    '/'
+);
+
+// Set up event handler for the WebSocket onmessage event
+chatSocket.onmessage = function (e) {
+    const data = JSON.parse(e.data);
+    document.querySelector('#chat-text').value += (data.message + ' sent by ' + data.username + '\n'); // add message to text box
+    
+    if (data.message) {
+        let html = '<div class="card-header d-flex justify-content-between p-3">';
+	        html += '<p class="fw-bold mb-0">' + data.user_username + '</p></div>';
+            // <p class="text-muted small mb-0"><i class="far fa-clock"></i> 12 mins ago</p>
+            html += '<div class="card-body">';
+            html += '<p class="mb-0">' + data.message + '</p></div>';
+
+        document.querySelector('#chat-text').innerHTML += html;
+    } else {
+        alert('The message was empty!');
     }
+};
 
-    chatSocket.onclose = function(e) {
-        console.log('onclose')
-    }
+// Set up event handler for the submit button
+document.querySelector('#submit').onclick = function (e) {
+    e.preventDefault();
+
+    const messageInputDom = document.querySelector('#input');
+    const message = messageInputDom.value;
+
+    // Send the message and username through the WebSocket
+    chatSocket.send(JSON.stringify({
+        'message': message,
+        'username': user_username,
+        'room': room_name
+    }));
+
+    // Clear the message input
+    messageInputDom.value = '';
+
+    return false;
+};
 </script>
+
 {% endblock %}

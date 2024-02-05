@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from .models import Message
 from django.contrib.auth.decorators import login_required
 
 from .models import Room
@@ -11,4 +12,6 @@ def rooms(request):
 @login_required
 def room(request, room_name):
     room = Room.objects.get(slug=room_name)
-    return render(request, 'room/chatbox.html', {'room': room})
+    messages = Message.objects.filter(room=room).order_by('timestamp')
+    
+    return render(request, 'room/chatwindow.html', {'room': room, 'messages': messages})
