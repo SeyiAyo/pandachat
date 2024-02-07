@@ -1,4 +1,5 @@
 import os
+import django
 
 from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
@@ -9,6 +10,8 @@ from channels.security.websocket import AllowedHostsOriginValidator, OriginValid
 import room.routing
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'pandachat.settings')
+
+django.setup()
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),
